@@ -3,4 +3,4 @@ A tool written in C++ that is able to edit Music slots values inside Mario Kart 
 Original: https://github.com/Ermelber/MKDS-ARM9-Music-Editor
 
 To compile yourself download the source code and MinGW and run this in the Command Prompt:
-g++ <path to .cpp file> -o <path to output .exe file> -lcomdlg32
+g++ <path to .cpp file> -o <path to output .exe file> -static -static-libgcc -static-libstdc++ -lcomdlg32
