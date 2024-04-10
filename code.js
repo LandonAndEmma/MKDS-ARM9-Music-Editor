@@ -61,8 +61,37 @@ function openPopup() {
     // Implement popup opening logic
 }
 
-function saveFileAs() {
-    // Implement "Save As" logic
+async function saveFileAs() {
+    try {
+        const uint8Array = new Uint8Array(ARM_VALUES);
+        const blob = new Blob([uint8Array], { type: 'application/octet-stream' });
+
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.bin';
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+            document.body.removeChild(fileInput);
+        });
+
+        fileInput.click();
+    } catch (error) {
+        console.error('Error saving file:', error);
+    }
 }
 
 function openHelp() {
