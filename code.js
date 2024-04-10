@@ -58,7 +58,34 @@ function refreshListbox() {
 }
 
 function openPopup() {
-    // Implement popup opening logic
+    const selectedTrack = listbox.options[listbox.selectedIndex].text;
+    const offset = ARM_OFFSETS[selectedTrack];
+    
+    const popupWindow = window.open('', 'Change SEQ Value', 'width=300,height=180');
+    popupWindow.document.write(`
+        <html>
+        <head>
+        <title>Change SEQ Value</title>
+        </head>
+        <body>
+        <label for="seqValue">Enter new SEQ value:</label>
+        <input type="number" id="seqValue" min="0" max="75" required>
+        <button onclick="changeSeqValue()">Change SEQ Value</button>
+        </body>
+        </html>
+    `);
+
+    popupWindow.changeSeqValue = function() {
+        const newSeqValue = parseInt(popupWindow.document.getElementById('seqValue').value);
+        if (!isNaN(newSeqValue) && newSeqValue >= 0 && newSeqValue <= 75) {
+            ARM_VALUES[offset] = newSeqValue;
+            refreshListbox();
+            popupWindow.close();
+            alert(`SEQ value for ${selectedTrack} changed to ${newSeqValue}`);
+        } else {
+            alert('Invalid SEQ value. Value must be between 0 and 75.');
+        }
+    };
 }
 
 async function saveFileAs() {
