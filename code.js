@@ -134,10 +134,6 @@ function openHelp() {
     alert(helpMessage);
 }
 
-function openRepository() {
-    // Implement opening repository logic
-}
-
 function onListboxSelect() {
     // Implement listbox selection logic
 }
