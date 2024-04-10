@@ -13,7 +13,7 @@ pip install pillow
 ```
 
 ### Usage
-1. Run the script `arm9_music_editor.py`.
+1. Run the script `arm9_music_editor.py` or use the precompiled executable.
 2. Follow the on-screen instructions to edit music slot values.
 3. Save your changes.
 
