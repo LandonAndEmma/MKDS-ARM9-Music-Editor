@@ -1,57 +1,100 @@
-import tkinter as tk  # Import the tkinter module for creating GUI
-from tkinter import filedialog, messagebox  # Import specific functions/classes from tkinter
-import os  # Import the os module for interacting with the operating system
-import webbrowser  # Import the webbrowser module for opening web pages
+import io
+import os
+import base64
+import webbrowser
+import tkinter as tk
+from PIL import Image, ImageTk
+from tkinter import filedialog, messagebox
 
-# Global variables
-ARM9_BIN_PATH = None  # Path to the ARM9 binary file
-OFFSET = 1388909  # Offset in the ARM9 binary file
-ARM_VALUES = []  # List to store ARM values read from the file
+ARM9_BIN_PATH = None
+ARM_VALUES = []
+ARM_OFFSETS = {
+    "Grand Prix Flyover": 0x153171,
+    "Grand Prix Flyover (Figure-8 Circuit, GCN Luigi Circuit, Mario Circuit)": 0x153175,
+    "Wario Stadium Flyover": 0x153179,
+    "Battle Mode Flyover": 0x153181,
+    "Boss Intro": 0x153185,
+    "Figure-8 Circuit": 0x153189,
+    "GCN Yoshi Circuit": 0x153191,
+    "Cheep Cheep Beach": 0x153195,
+    "Yoshi Falls": 0x153199,
+    "Bowser Castle": 0x153201,
+    "GBA Sky Garden": 0x153205,
+    "Battle Mode": 0x153209,
+    "New Reward": 0x153211,
+    "Grand Prix Results": 0x153215,
+    "Credits (50cc + 100cc)": 0x153219,
+    "Wi-Fi Menu": 0x153221,
+    "Multiplayer Menu": 0x153225,
+    "Records Menu": 0x153229,
+    "Game Intro": 0x153231,
+    "Singleplayer Menu": 0x153235,
+    "Grand Prix Flyover (Waluigi Pinball)": 0x15317D,
+    "GCN Luigi Circuit": 0x15318D,
+    "GCN Baby Park": 0x15319D,
+    "N64 Moo Moo Farm": 0x1531A1,
+    "N64 Frappe Snowland": 0x1531A5,
+    "Delfino Square": 0x1531A9,
+    "Airship Fortress": 0x1531AD,
+    "Wario Stadium": 0x1531B1,
+    "GCN Mushroom Bridge": 0x1531B5,
+    "Peach Gardens": 0x1531B9,
+    "Luigi's Mansion": 0x1531BD,
+    "SNES Mario Circuit 1": 0x1531C1,
+    "SNES Koopa Beach 2": 0x1531C5,
+    "SNES Donut Plains 1": 0x1531C9,
+    "SNES Choco Island 2": 0x1531CD,
+    "GBA Peach Circuit": 0x1531D1,
+    "GBA Luigi Circuit": 0x1531D5,
+    "Shroom Ridge": 0x1531D9,
+    "N64 Choco Mountain": 0x1531DD,
+    "N64 Banshee Boardwalk": 0x1531E1,
+    "DK Pass": 0x1531E5,
+    "Desert Hills": 0x1531E9,
+    "Waluigi Pinball": 0x1531ED,
+    "Tick Tock Clock": 0x1531F1,
+    "Mario Circuit": 0x1531F5,
+    "Rainbow Road": 0x1531F9,
+    "GBA Bowser Castle 2": 0x1531FD,
+    "Boss Battle": 0x15320D,
+    "Credits (150cc + Mirror)": 0x15321D,
+}
+ICON_BASE64 = """AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAzIxH/MyIQ/zIjEP8AAQEAAQAAAAABAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAQAAAQAAMyMR/zIjEP8yIhD/NykW/0Y6Lf96c2//e3Jv/3tzb/97c2//e3Nu/3tzb/97cm//enNu/3pzb/97c27/e3Nu/3pyb/9GOiz/NygX/0U6I/+GhID/xMTO/+vr7f/39vf/9/b2//b39//29/f/9/f2//f39//29/b/9/b3/+vr7f/Fxc7/h4SB/0U7Iv9KQyn/SkIp/5eUk/92bmf/JSVP/wEJe/8ZFUf/GRVG/xkURv8ZFEb/AQh6/yQlT/92b2f/l5WS/0pDKf9KQij/VlMt/2NjMP9iYzH/MSAQ/xkVR/8BAcb/SEjd/25v3f9ub9z/SUnc/wEBxv8ZFUf/MCEQ/2JiMf9jYjH/V1Is/1hSQP9nY1f/Z2NW/0tDJf8+Mh3/Fxfe/4eG5f9UVOf/VFXn/4eH5P8WF97/PzId/0pDJf9nYlf/ZmJX/1lTQP90dFv/dXRa/3R0W/9lYkT/ZWJF/y0xuP+Agff/gID2/4GB9/+Bgff/LTC5/2VjRP9lYkX/dHVb/3R1W/90dFv/AAEBAAABAAAAAAAAoKGh/52clP/Awcf/VkpB/1IgX/9TIV//VkpB/8HAxv+cnJT/oKCh/wAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAKKjqf+am57/vr++/3R+c/9LW2//Slpv/3R+cv++vr7/m5ue/6Ojqf8AAQAAAAABAAEAAQAAAAAAAAEAAAABAQDc3eD/3N3g/0tqnP9ERkf/TFlt/0xZbf9ERkf/S2qc/93d4f/d3eH/AAAAAAAAAAAAAAAAAAEAAAEBAAAAAQAAAAAAAAEAAABff6L/fp/M/2aIs/9niLP/hKnY/19+o/8AAAEAAAEAAAAAAAAAAAAAAAEAAAABAAAAAQAAAAEBAAABAQAAAAEADQ5h/4OjzP99fYD/fHyA/4KizP8NDmD/AAAAAAEBAAAAAQAAAAAAAAAAAQABAAAAAAEAAAAAAAABAQAAAAAAAAAEmP8NDmD/JC9u/yQvbv8MD2D/AAWY/wEAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAEBAAAAAQAAAQABAAAAAAAAAMv/AQC9/xYasf8XGrD/AQC9/wAAy/8AAAAAAAEAAAABAQAAAAAAAAAAAAAAAQAAAAAAAQAAAAAAAAABAAAAAQABAERF7/+Tkuf/kpPn/0RF7/8AAAAAAAAAAAABAAAAAAAAAAEAAAAAAAABAAAAAQAAAAEBAAABAAEAAAAAAAEBAAAAAAAAWlv3/1ta9v8AAAEAAAEBAAABAAAAAAEAAAEAAAEAAAABAAEAH/gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAHAADgBwAA4AcAAPgfAAD4HwAA+B8AAPgfAAD8PwAA/n8AAA=="""
 
-# List of track names
-TRACKS = [
-    "Unknown [Don't Change]", "Grand Prix Flyover", "Grand Prix Flyover (Unique)", "Wario Stadium Flyover", "Grand Prix Flyover (Unique)", "Battle Mode Flyover",
-    "Boss Intro", "Figure-8 Circuit", "GCN Luigi Circuit", "GCN Yoshi Circuit", "Cheep Cheep Beach",
-    "Yoshi Falls", "GCN Baby Park", "N64 Moo Moo Farm", "N64 Frappe Snowland", "Delfino Square",
-    "Airship Fortress", "Wario Stadium", "GCN Mushroom Bridge", "Peach Gardens", "Luigi's Mansion",
-    "SNES Mario Circuit 1", "SNES Koopa Beach 2", "SNES Donut Plains 1", "SNES Choco Island 2",
-    "GBA Peach Circuit", "GBA Luigi Circuit", "Shroom Ridge", "N64 Choco Mountain", "N64 Banshee Boardwalk",
-    "DK Pass", "Desert Hills", "Waluigi Pinball", "Tick-Tock Clock", "Mario Circuit", "Rainbow Road",
-    "GBA Bowser Castle 2", "Bowser Castle", "GBA Sky Garden", "Battle Mode", "Boss Battle",
-    "New Reward", "GP Results", "Credits (50cc + 100cc)", "Credits (150cc + Mirror)", "Wi-Fi Menu", "Multiplayer Menu", "Records Menu",
-    "Options Menu", "Game Intro", "Singleplayer Menu", "Unknown [Don't Change]", "Mario Circuit [Doesn't Work]"
-]
 
-# Function to read binary file
+def get_icon_from_base64(base64_string):
+    icon_data = base64.b64decode(base64_string)
+    icon = Image.open(io.BytesIO(icon_data))
+    return ImageTk.PhotoImage(icon)
+
+
 def read_file(filename):
     try:
-        with open(filename, 'rb') as file:  # Open the file in binary read mode
-            return file.read()  # Read the content of the file
+        with open(filename, 'rb') as file:
+            return file.read()
     except Exception as e:
-        messagebox.showerror("Error", f"Failed to open file: {filename}\n\nError: {e}")  # Show error message if failed to open the file
+        messagebox.showerror("Error",
+                             f"Failed to open file: {filename}\n\nError: {e}")
 
-# Function to open ARM9 binary file
+
 def open_file():
     global ARM_VALUES, ARM9_BIN_PATH
-    # Open file dialog to select the ARM9 binary file
-    file_path = filedialog.askopenfilename(title="Select ARM9 Binary File", filetypes=(("Binary Files", "*.bin"), ("All Files", "*.*")))
+    file_path = filedialog.askopenfilename(title="Select ARM9 Binary File",
+                                           filetypes=(("Binary Files", "*.bin"), ("All Files", "*.*")))
     if file_path:
         ARM9_BIN_PATH = file_path
-        # Check if the file is empty
         if os.path.getsize(ARM9_BIN_PATH) == 0:
             messagebox.showerror("Error", "This is not an arm9.bin file.")
             return
-        # Read the content of the file
         file_content = read_file(ARM9_BIN_PATH)
         if file_content:
-            # Extract ARM values from the file content
-            ARM_VALUES = [int(byte) for byte in file_content[OFFSET:OFFSET + 211]]
+            ARM_VALUES = [int(byte) for byte in file_content]
             if not ARM_VALUES:
                 messagebox.showerror("Error", "This is not an arm9.bin file.")
             else:
-                refresh_listbox()  # Refresh the listbox with the track names
+                refresh_listbox()
 
-# Function to save modified file
+
 def save_file(file_path=None):
     global ARM_VALUES, ARM9_BIN_PATH
     if not ARM9_BIN_PATH:
@@ -60,40 +103,27 @@ def save_file(file_path=None):
     if file_path is None:
         file_path = ARM9_BIN_PATH
     try:
-        # Read original content of the file
-        with open(file_path, 'rb') as file:
-            original_content = bytearray(file.read())
-        # Update ARM values in the original content
-        for i, value in enumerate(ARM_VALUES):
-            original_content[OFFSET + i] = value
-        # Write modified content back to the file
         with open(file_path, 'wb') as file:
-            file.write(original_content)
+            file.write(bytes(ARM_VALUES))
         messagebox.showinfo("Success", "Modified file saved successfully")
     except Exception as e:
         messagebox.showerror("Error", f"Failed to save modified file: {str(e)}")
 
-# Function to refresh listbox with track names and SEQ values
-def refresh_listbox():
-    listbox.delete(0, tk.END)  # Clear the listbox
-    for i, track in enumerate(TRACKS):
-        # Insert track name and corresponding SEQ value in the listbox
-        listbox.insert(tk.END, f"{i}) {track} [{ARM_VALUES[i * 4]}]")
 
-# Function to open popup window for changing SEQ value
-def open_popup(selected_index):
-    root.attributes("-disabled", True)  # Disable main window
-    # Create popup window
+def refresh_listbox():
+    listbox.delete(0, tk.END)
+    for i, (track, offset) in enumerate(ARM_OFFSETS.items()):
+        listbox.insert(tk.END, f"{i}) {track} [{ARM_VALUES[offset]}]")
+
+
+def open_popup():
+    root.attributes("-disabled", True)
     popup_window = tk.Toplevel(root)
     popup_window.title("Change SEQ Value")
     popup_window.geometry("300x180")
-    popup_window.resizable(False, False)  # Make popup window unresizable
-    popup_window.attributes("-topmost", True)  # Make popup window appear on top
-
-    # Add favicon to the popup window
-    if os.path.exists("icon.ico"):
-        popup_window.iconbitmap("icon.ico")
-
+    popup_window.resizable(False, False)
+    popup_window.attributes("-topmost", True)
+    popup_window.iconphoto(True, get_icon_from_base64(ICON_BASE64))
     seq_label = tk.Label(popup_window, text="Enter new SEQ value:")
     seq_label.pack()
     seq_entry = tk.Entry(popup_window)
@@ -101,28 +131,31 @@ def open_popup(selected_index):
 
     def change_seq_value():
         nonlocal popup_window
-        track_name = TRACKS[selected_index]
-        seq_index = selected_index * 4
+        selected_item = listbox.get(listbox.curselection())
+        selected_index = int(selected_item.split(")")[0])
+        track_name = list(ARM_OFFSETS.keys())[selected_index]
+        offset = ARM_OFFSETS[track_name]
         try:
             new_value = int(seq_entry.get())
-            if -1 <= new_value <= 75:
-                ARM_VALUES[seq_index] = new_value
+            if 0 <= new_value <= 75:
+                ARM_VALUES[offset] = new_value
                 refresh_listbox()
-                popup_window.destroy()  # Close the popup window
-                root.attributes("-disabled", False)  # Enable main window
+                popup_window.destroy()
+                root.attributes("-disabled", False)
                 messagebox.showinfo("Success", f"SEQ value for {track_name} changed to {new_value}")
             else:
-                popup_window.destroy()  # Close the popup window
-                root.attributes("-disabled", False)  # Enable main window
-                messagebox.showerror("Error", "Invalid SEQ value. Value must be between -1 and 75.")
+                popup_window.destroy()
+                root.attributes("-disabled", False)
+                messagebox.showerror("Error", "Invalid SEQ value. Value must be between 0 and 75.")
         except ValueError:
-            popup_window.destroy()  # Close the popup window
-            root.attributes("-disabled", False)  # Enable main window
-            messagebox.showerror("Error", "Invalid SEQ value. Value must be between -1 and 75.")
+            popup_window.destroy()
+            root.attributes("-disabled", False)
+            messagebox.showerror("Error", "Invalid SEQ value. Value must be between 0 and 75.")
 
     seq_button = tk.Button(popup_window, text="Change SEQ Value", command=change_seq_value)
     seq_button.pack()
-    cancel_button = tk.Button(popup_window, text="Cancel", command=lambda: (popup_window.destroy(), root.attributes("-disabled", False)))
+    cancel_button = tk.Button(popup_window, text="Cancel",
+                              command=lambda: (popup_window.destroy(), root.attributes("-disabled", False)))
     cancel_button.pack()
 
     def close_popup_window():
@@ -130,21 +163,18 @@ def open_popup(selected_index):
         root.attributes("-disabled", False)
 
     popup_window.protocol("WM_DELETE_WINDOW", close_popup_window)
-
-    # Disable popup window when an error or success message pops up
     popup_window.transient(root)
-    popup_window.grab_set()  # Grab focus and disable interactions with other windows
+    popup_window.grab_set()
+    popup_window.mainloop()
 
-    popup_window.mainloop()  # Start popup window event loop
 
-
-# Function to save file as a new file
 def save_file_as():
-    file_path = filedialog.asksaveasfilename(defaultextension=".bin", filetypes=(("Binary Files", "*.bin"), ("All Files", "*.*")))
+    file_path = filedialog.asksaveasfilename(defaultextension=".bin",
+                                             filetypes=(("Binary Files", "*.bin"), ("All Files", "*.*")))
     if file_path:
         save_file(file_path)
 
-# Function to display help information
+
 def open_help():
     messagebox.showinfo("Help",
                         "This program allows you to edit the music track SEQ IDs in the arm9.bin file of Mario Kart DS.\n\n"
@@ -154,52 +184,45 @@ def open_help():
                         "Original Code: Ermelber, Yami, MkDasher\n"
                         "Fixed and made into a Python GUI app by Landon & Emma")
 
-# Function to open repository URL
+
 def open_repository():
     webbrowser.open_new("https://github.com/LandonAndEmma/MKDS-ARM9-Music-Editor")
 
-# Function to handle window closing event
+
 def on_closing():
     if not ARM9_BIN_PATH or messagebox.askokcancel("Quit", "Do you want to quit?"):
         root.destroy()
 
-# Create the main window
+
 root = tk.Tk()
-root.title("Mario Kart DS ARM9 Music Table Editor")  # Set window title
-root.geometry("600x400")  # Set window size
+root.title("Mario Kart DS ARM9 Music Table Editor")
+root.geometry("600x400")
+root.iconphoto(True, get_icon_from_base64(ICON_BASE64))
+menubar = tk.Menu(root)
+file_menu = tk.Menu(menubar, tearoff=0)
+file_menu.add_command(label="Open", command=open_file)
+file_menu.add_command(label="Save", command=save_file)
+file_menu.add_command(label="Save As", command=save_file_as)
+menubar.add_cascade(label="File", menu=file_menu)
+help_menu = tk.Menu(menubar, tearoff=0)
+help_menu.add_command(label="Help", command=open_help)
+help_menu.add_command(label="Repository", command=open_repository)
+menubar.add_cascade(label="Help", menu=help_menu)
+root.config(menu=menubar)
+main_frame = tk.Frame(root)
+main_frame.pack(fill=tk.BOTH, expand=True)
+label = tk.Label(main_frame, text="Select a track to change the SEQ value:")
+label.pack()
+listbox = tk.Listbox(main_frame)
+listbox.pack(fill=tk.BOTH, expand=True)
 
-root.iconbitmap("icon.ico")  # Set window icon
 
-menubar = tk.Menu(root)  # Create menubar
-file_menu = tk.Menu(menubar, tearoff=0)  # Create file menu
-file_menu.add_command(label="Open", command=open_file)  # Add open file option to file menu
-file_menu.add_command(label="Save", command=save_file)  # Add save file option to file menu
-file_menu.add_command(label="Save As", command=save_file_as)  # Add save as option to file menu
-menubar.add_cascade(label="File", menu=file_menu)  # Add file menu to menubar
-
-help_menu = tk.Menu(menubar, tearoff=0)  # Create help menu
-help_menu.add_command(label="Help", command=open_help)  # Add help option to help menu
-help_menu.add_command(label="Repository", command=open_repository)  # Add repository option to help menu
-menubar.add_cascade(label="Help", menu=help_menu)  # Add help menu to menubar
-
-root.config(menu=menubar)  # Configure root window with menubar
-
-main_frame = tk.Frame(root)  # Create main frame
-main_frame.pack(fill=tk.BOTH, expand=True)  # Pack main frame to root window
-
-label = tk.Label(main_frame, text="Select a track to change the SEQ value:")  # Create label
-label.pack()  # Pack label to main frame
-
-listbox = tk.Listbox(main_frame)  # Create listbox
-listbox.pack(fill=tk.BOTH, expand=True)  # Pack listbox to main frame
-
-# Bind listbox selection event to function
 def on_listbox_select(event):
     selected_index = listbox.curselection()
     if selected_index:
-        open_popup(selected_index[0])
+        open_popup()
+
 
 listbox.bind("<<ListboxSelect>>", on_listbox_select)
-
-root.protocol("WM_DELETE_WINDOW", on_closing)  # Bind window closing event to function
-root.mainloop()  # Start GUI event loop
+root.protocol("WM_DELETE_WINDOW", on_closing)
+root.mainloop()
