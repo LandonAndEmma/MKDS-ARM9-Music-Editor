@@ -1,34 +1,33 @@
 ## Mario Kart DS ARM9 Music Slots Table Editor
 
 ### Description
-This Python tool allows you to edit music slot values within Mario Kart DS' arm9.bin. With this tool, you can utilize any sseq on most slots of the game.
+The Mario Kart DS ARM9 Music Slots Table Editor is a Python tool designed to allow users to edit music slot values within Mario Kart DS' `arm9.bin`. With this tool, you can utilize any SSEQ on most slots of the game, enhancing your Mario Kart DS experience.
 
-[Original Repository](https://github.com/Ermelber/MKDS-ARM9-Music-Editor)
+This tool is based on the original repository by [Ermelber](https://github.com/Ermelber/MKDS-ARM9-Music-Editor).
 
-### Installation and Compilation
+### Requirements
+To use this tool, you need to have Python installed on your system. Additionally, you will need to install the following dependency using pip:
 
-**For Running from Source Code:**
-- Download the latest version of Python.
-- Install required packages by running:
-  ```
-  pip install Nuitka
-  pip install tk
-  ```
+```bash
+pip install pillow
+```
 
-**For Compiling to .exe:**
-- Install Python 3.11.7.
-- Run either of these commands:
-  - Onefile command:
-    ```
-    nuitka --enable-plugin=tk-inter --onefile gui.py
-    ```
-  - Standalone command:
-    ```
-    nuitka --enable-plugin=tk-inter --standalone gui.py
-    ```
+### Installation
+1. Clone this repository to your local machine.
+2. Navigate to the project directory.
+3. Install the required dependencies using the provided `requirements.txt` file:
+
+```bash
+pip install -r requirements.txt
+```
 
 ### Usage
-After compiling, use Resource Hacker to inject the app icon located in the favicon folder.
+1. Run the script `arm9_music_editor.py`.
+2. Follow the on-screen instructions to edit music slot values.
+3. Save your changes.
 
-### Note
-If you don't want to compile, you can simply run the tool using Python.
+### Contributing
+Contributions to this project are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request following the contribution guidelines.
+
+### License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
