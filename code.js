@@ -53,18 +53,7 @@ const ARM_OFFSETS = {
 };
 
 function openFile() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.bin';
-    fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            ARM9_BIN_PATH = file.name;
-            const fileContent = await readBinaryFile(file);
-            ARM_VALUES = Array.from(fileContent);
-            refreshListbox();
-        }
-    });
+    const fileInput = document.getElementById('fileInput');
     fileInput.click();
 }
 
@@ -97,42 +86,6 @@ async function saveFile() {
     } else {
         console.error('No file is opened to save.');
     }
-}
-
-function openRepository() {
-    const repositoryUrl = 'https://github.com/LandonAndEmma/MKDS-ARM9-Music-Editor';
-    window.open(repositoryUrl, '_blank');
-}
-
-function openPopup() {
-    const selectedTrack = listbox.options[listbox.selectedIndex].text;
-    const offset = ARM_OFFSETS[selectedTrack];
-    
-    const popupWindow = window.open('', 'Change SEQ Value', 'width=300,height=180');
-    popupWindow.document.write(`
-        <html>
-        <head>
-        <title>Change SEQ Value</title>
-        </head>
-        <body>
-        <label for="seqValue">Enter new SEQ value:</label>
-        <input type="number" id="seqValue" min="0" max="75" required>
-        <button onclick="changeSeqValue()">Change SEQ Value</button>
-        </body>
-        </html>
-    `);
-
-    popupWindow.changeSeqValue = function() {
-        const newSeqValue = parseInt(popupWindow.document.getElementById('seqValue').value);
-        if (!isNaN(newSeqValue) && newSeqValue >= 0 && newSeqValue <= 75) {
-            ARM_VALUES[offset] = newSeqValue;
-            refreshListbox();
-            popupWindow.close();
-            alert(`SEQ value for ${selectedTrack} changed to ${newSeqValue}`);
-        } else {
-            alert('Invalid SEQ value. Value must be between 0 and 75.');
-        }
-    };
 }
 
 async function saveFileAs() {
@@ -176,29 +129,54 @@ function openHelp() {
     3. After making changes, go to File > Save to save the modified file.\n\n
     Original Code: Ermelber, Yami, MkDasher\n
     Fixed and made into a Python GUI app by Landon & Emma`;
-
     alert(helpMessage);
 }
 
+function openRepository() {
+    const repositoryUrl = 'https://github.com/LandonAndEmma/MKDS-ARM9-Music-Editor';
+    window.open(repositoryUrl, '_blank');
+}
+
 function onListboxSelect() {
-    const selectedTrack = listbox.options[listbox.selectedIndex].text;
+    const selectedTrack = trackList.options[trackList.selectedIndex].text;
     if (selectedTrack) {
         openPopup();
     }
 }
 
-window.addEventListener('DOMContentLoaded', (event) => {
-    // Add event listeners and initialize the app
-    const fileInput = document.getElementById('fileInput');
-    fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            ARM9_BIN_PATH = file.name;
-            const fileContent = await readBinaryFile(file);
-            ARM_VALUES = Array.from(fileContent);
-            refreshListbox();
-        }
-    });
+function refreshListbox() {
+    const trackList = document.getElementById('trackList');
+    trackList.innerHTML = '';
+    for (const [track, offset] of Object.entries(ARM_OFFSETS)) {
+        const option = document.createElement('option');
+        option.text = track;
+        trackList.add(option);
+    }
+}
 
-    // Add other event listeners
+async function openPopup() {
+    const selectedTrack = trackList.options[trackList.selectedIndex].text;
+    const offset = ARM_OFFSETS[selectedTrack];
+
+    const newSeqValue = prompt(`Enter new SEQ value for ${selectedTrack}:`, ARM_VALUES[offset]);
+    if (newSeqValue !== null) {
+        const intValue = parseInt(newSeqValue);
+        if (!isNaN(intValue) && intValue >= 0 && intValue <= 75) {
+            ARM_VALUES[offset] = intValue;
+            refreshListbox();
+            alert(`SEQ value for ${selectedTrack} changed to ${intValue}`);
+        } else {
+            alert('Invalid SEQ value. Value must be between 0 and 75.');
+        }
+    }
+}
+
+document.getElementById('fileInput').addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        ARM9_BIN_PATH = file.name;
+        const fileContent = await readBinaryFile(file);
+        ARM_VALUES = Array.from(fileContent);
+        refreshListbox();
+    }
 });
