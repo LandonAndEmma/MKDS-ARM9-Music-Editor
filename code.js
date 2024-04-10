@@ -7,7 +7,19 @@ const ARM_OFFSETS = {
 };
 
 function openFile() {
-    // Implement file opening logic
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.bin';
+    fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            ARM9_BIN_PATH = file.name;
+            const fileContent = await readBinaryFile(file);
+            ARM_VALUES = Array.from(fileContent);
+            refreshListbox();
+        }
+    });
+    fileInput.click();
 }
 
 function readBinaryFile(file) {
