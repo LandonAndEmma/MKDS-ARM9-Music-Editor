@@ -135,7 +135,10 @@ function openHelp() {
 }
 
 function onListboxSelect() {
-    // Implement listbox selection logic
+    const selectedTrack = listbox.options[listbox.selectedIndex].text;
+    if (selectedTrack) {
+        openPopup();
+    }
 }
 
 window.addEventListener('DOMContentLoaded', (event) => {
