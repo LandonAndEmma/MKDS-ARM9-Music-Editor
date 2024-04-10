@@ -32,7 +32,25 @@ function readBinaryFile(file) {
 }
 
 async function saveFile() {
-    // Implement file saving logic
+    if (ARM9_BIN_PATH) {
+        try {
+            const uint8Array = new Uint8Array(ARM_VALUES);
+            const blob = new Blob([uint8Array], { type: 'application/octet-stream' });
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = ARM9_BIN_PATH;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error saving file:', error);
+        }
+    } else {
+        console.error('No file is opened to save.');
+    }
 }
 
 function refreshListbox() {
