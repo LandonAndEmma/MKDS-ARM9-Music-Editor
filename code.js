@@ -53,8 +53,9 @@ async function saveFile() {
     }
 }
 
-function refreshListbox() {
-    // Implement listbox refreshing logic
+function openRepository() {
+    const repositoryUrl = 'https://github.com/LandonAndEmma/MKDS-ARM9-Music-Editor';
+    window.open(repositoryUrl, '_blank');
 }
 
 function openPopup() {
