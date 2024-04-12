@@ -1,0 +1,60 @@
+@font-face {
+    font-family: 'CustomFont';
+    src: url('font.ttf') format('truetype');
+}
+
+body {
+    font-family: 'CustomFont', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-image: url('bg.png');
+    background-repeat: repeat;
+}
+
+h1 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+button {
+    background-color: #FFD700;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #FFA500;
+}
+
+select {
+    width: 200px;
+    font-size: 16px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+label {
+    color: #fff;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+#trackList {
+    height: 300px;
+    margin-bottom: 20px;
+}
